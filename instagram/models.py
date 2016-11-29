@@ -1,5 +1,13 @@
-from .helper import timestamp_to_datetime
+# -*- coding: utf-8 -*-
+
+import logging
 import six
+
+from .helper import timestamp_to_datetime
+
+
+
+logger = logging.getLogger('instagram')
 
 
 class ApiModel(object):
@@ -72,6 +80,7 @@ class Media(ApiModel):
 
     @classmethod
     def object_from_dictionary(cls, entry):
+        logger.info(entry)
         new_media = Media(id=entry['id'])
         new_media.type = entry['type']
 
@@ -90,19 +99,17 @@ class Media(ApiModel):
             new_media.user_has_liked = entry['user_has_liked']
         new_media.like_count = entry['likes']['count']
         new_media.likes = []
-        if 'data' in entry['likes']:
-            for like in entry['likes']['data']:
-                new_media.likes.append(User.object_from_dictionary(like))
+        for like in entry['likes'].get('data', list()):
+            new_media.likes.append(User.object_from_dictionary(like))
 
         new_media.comment_count = entry['comments']['count']
         new_media.comments = []
-        for comment in entry['comments']['data']:
+        for comment in entry['comments'].get('data', list()):
             new_media.comments.append(Comment.object_from_dictionary(comment))
 
         new_media.users_in_photo = []
-        if entry.get('users_in_photo'):
-            for user_in_photo in entry['users_in_photo']:
-                new_media.users_in_photo.append(UserInPhoto.object_from_dictionary(user_in_photo))
+        for user_in_photo in entry.get('users_in_photo', list()):
+            new_media.users_in_photo.append(UserInPhoto.object_from_dictionary(user_in_photo))
 
         new_media.created_time = timestamp_to_datetime(entry['created_time'])
 
@@ -112,7 +119,7 @@ class Media(ApiModel):
         new_media.caption = None
         if entry['caption']:
             new_media.caption = Comment.object_from_dictionary(entry['caption'])
-        
+
         new_media.tags = []
         if entry['tags']:
             for tag in entry['tags']:
