@@ -1,5 +1,10 @@
+*.log
+*.py[cod]
+.*
+
+pip-selfcheck.json
+
 *.pyc
 .DS_Store
 *.swp
 test_settings.py
-
