@@ -1,12 +1,21 @@
-import urllib
-from .oauth2 import OAuth2Request
-import re
-from .json_import import simplejson
-import hmac
+# -*- coding: utf-8 -*-
+
 from hashlib import sha256
-import six
 from six.moves.urllib.parse import quote
+import hmac
+import logging
+import re
+import six
 import sys
+import urllib
+
+from .json_import import simplejson
+from .oauth2 import OAuth2Request
+
+
+
+logger = logging.getLogger('instagram')
+
 
 re_path_template = re.compile('{\w+}')
 
@@ -61,7 +70,7 @@ def bind_method(**config):
             if self.as_generator:
                 self.pagination_format = 'next_url'
             else:
-                self.pagination_format = kwargs.pop('pagination_format', 'next_url')
+                self.pagination_format = kwargs.pop('pagination_format', 'dict')
             self.return_json = kwargs.pop("return_json", False)
             self.max_pages = kwargs.pop("max_pages", 3)
             self.with_next_url = kwargs.pop("with_next_url", None)
@@ -107,13 +116,14 @@ def bind_method(**config):
 
         def _build_pagination_info(self, content_obj):
             """Extract pagination information in the desired format."""
+            logger.info(content_obj)
             pagination = content_obj.get('pagination', {})
             if self.pagination_format == 'next_url':
                 return pagination.get('next_url')
             if self.pagination_format == 'dict':
                 return pagination
             raise Exception('Invalid value for pagination_format: %s' % self.pagination_format)
-          
+
         def _do_api_request(self, url, method="GET", body=None, headers=None):
             headers = headers or {}
             if self.signature and self.api.client_ips != None and self.api.client_secret != None:
